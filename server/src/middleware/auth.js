@@ -2,13 +2,13 @@ import jwt from 'jsonwebtoken';
 import {JWT_SECRET}  from '../utils/index.js';
 import User from '../models/userModel.js';
 import {UpdateUser,findUserByEmail} from '../dbServices/userServices.js';
+import customError from '../config/ApiCallError.js';
 
 export const generateAccessToken = (user) => {
     return jwt.sign(
         {
             email: user.email,
             isLoggedIn: true,
-            id: user._id,
         },
         JWT_SECRET,
         {
@@ -22,7 +22,6 @@ export const generateResetToken = (user) =>{
     return jwt.sign(
         {
             email: user.email,
-            id: user._id,
         },
         JWT_SECRET,
         {
@@ -32,18 +31,22 @@ export const generateResetToken = (user) =>{
 };
 
 export const generateRefreshToken = async (user) => {
-    const token = jwt.sign(
-        {
-            email: user.email,
-        },
-        JWT_SECRET,
-        {
-            expiresIn: '1d',
-        }
-    );
-    user.refreshToken = token;
-    await UpdateUser(user);
-    return token;
+    try {
+        const token = jwt.sign(
+            {
+                email: user.email,
+            },
+            JWT_SECRET,
+            {
+                expiresIn: '1d',
+            }
+        );
+        user.refreshToken = token;
+        await UpdateUser(user);
+        return token;
+    } catch (error) {
+        throw new customError("Internal error - failed to generate refresh token", 500, 'error');
+    }
 }; 
 
 export const verifyResetToken = async (token) => {
@@ -67,19 +70,22 @@ export const verifyResetToken = async (token) => {
 
 export const getAuthToken =async(req, res)=> {
     const user = req.body.user;
-    console.log(user);
+    console.log("Inside getAuth",user);
     const accessToken = generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
-    res.status(200).json({ email: user.email, accessToken: accessToken, refreshToken: refreshToken, isLoggedIn: true });
+    return {refreshToken, accessToken};
+    
 };
 
 export const verifyToken = async(req,res,next) => {
     
-    const token = req.headers.authorization?.replace('Bearer ', '') || '';
-    if(!token){
-        return res.status(401).json({message: 'No token provided'});
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    //?.replace('Bearer ', '') || '';
+    if(!authHeader?.startsWith('Bearer ')){
+        return next(new customError("Access Token not provided", 400, 'warn'));
+        //return res.status(401).json({message: 'No token provided'});
     }
-
+    const token = authHeader.replace('Bearer ', '');
     try {
         const decoded = await new Promise((resolve, reject) => {
             jwt.verify(token, JWT_SECRET, (err, decoded) => {
@@ -101,47 +107,16 @@ export const verifyToken = async(req,res,next) => {
         console.error('Token verification error:', error);
 
         if (error.name === 'TokenExpiredError') {
-            return res.status(401).send({ message: 'Token has expired' });
+            return next(new customError("Token has expired", 403, 'warn'));
+            //return res.status(401).send({ message: 'Token has expired' });
         } else {
-            return res.status(401).send({ message: 'Invalid Token' });
+            return next(new customError("Invalid Token", 401, 'warn'));
+            //return res.status(401).send({ message: 'Invalid Token' });
         }
     }
    
 };
 
 
-export const handleRefreshToken = async(req,res,next) => {
-    const refreshToken = (req.headers.refreshtoken) || "";
-    console.log(req.headers);
-    console.log(refreshToken);
-    if(!refreshToken){
-        return res.status(401).send({message: "Refresh token missing"});
-    }
 
-    // check if it is the correct token
-    try{
-        const refreshTokenDecoded = jwt.verify(refreshToken, JWT_SECRET);
-        if(!refreshTokenDecoded){
-            return res.status(401).send({message: "Invalid refresh token"});
-        }
-
-        // if decoded check agaisnt users refresh token
-        const user = await findUserByEmail(refreshTokenDecoded.email);
-        if(user.refreshToken !== refreshToken){
-            return res.status(401).send({message: "Invalid refresh Token for the user"});
-        }
-
-        // generate new tokens
-        const newAccessToken = generateAccessToken(user);
-        const newRefreshToken  = await generateRefreshToken(user);
-
-        return res.status(200).json({
-            accessToken: newAccessToken,
-            refreshToken : newRefreshToken,
-        });
-
-    }catch(error){
-        res.status(401).send({message:error});
-    }
-};
 

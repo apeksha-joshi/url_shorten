@@ -46,7 +46,8 @@ export const updateUserRequestCount = async(userId) =>{
 export const UpdateUser = async (user) => {
     try{
         await User.findOneAndUpdate({email:user.email}, user);
-    }catch(error){
+    }
+    catch(error){
         throw Error(error);
     }
 };

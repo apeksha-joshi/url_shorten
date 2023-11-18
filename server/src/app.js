@@ -2,50 +2,88 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import dbConnect  from './config/db.js';
+import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose';
+
+import dbConnect  from './config/dbConn.js';
 import baseRouter from './routes/index.js';
+import corsOptions from './config/corsOptions.js';
+import {logger, errorLogger} from './middleware/eventLogger.js';
+import customError from './config/ApiCallError.js';
 
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
 
-
-app.use(cors({ origin: "http://localhost:3000" }));
-app.use(express.urlencoded({ extended: false }));
-
-const PORT = process.env.PORT || 5001;
-
-
-//intialize the app
-app.listen(PORT, ()=>{
-    console.log(`Server is running on port ${PORT}`);
-});
-
-//start db connection
+//Connect db
 dbConnect();
 
+//logger
+app.use(logger);
 
-//print all the route calling
-app.use((req, res, next) => {
-    console.log(`Route call : ${req.method}: ${req.originalUrl}`); // req.path check move to middleware? logs file
-    next();
-});
+//print all the route calling - remove later
+// app.use((req, res, next) => {
+//     console.log(`Route call : ${req.method}: ${req.originalUrl}`); // req.path check move to middleware? logs file
+//     next();
+// });
+
+// set cors options
+app.use(cors(corsOptions));
 
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// routes
 app.use('/api', baseRouter);
 
 
-//listen unhandleRejection
-process.on("unhandledRejection", (reason, p) => {
-    console.error("Unhandled Rejection at:", p, "reason:", reason);
-    app.close();
-    process.exit(1);
-  });
-  
+// handle undefined routes
+app.all('*', (req, res, next) => {
+    // res.status(404);
+    // res.json({ "error": "404 Route Not Found" });
+    next(new customError("404 Route Not Found", 404, 'warn'))
+});
+
+
+//error logger
+app.use(errorLogger);
+
+
 process.on("uncaughtException", (e) => {
     console.error("Uncaught exception at:", e);
     app.close();
     process.exit(1);
   });
+
+const PORT = process.env.PORT || 5001;
+
+//intialize the app
+mongoose.connection.once('open', () => {
+      app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+  });
+  
+
+
+//listen unhandleRejection and uncaughtException
+process.on("unhandledRejection", (reason, p) => {
+    console.error("Unhandled Rejection at:", p, "reason:", reason);
+    app.close();
+    process.exit(1);
+  });
+
+
+// process.on("SIGTERM", () => {
+//     console.log("SIGTERM received. Shutting down gracefully");
+//     app.close(() => {
+//       console.log("Closed out remaining connections");
+//       process.exit(0);
+//     });
+//   });
+
+
+// app.listen(PORT, ()=>{
+//     console.log(`Server is running on port ${PORT}`);
+// });

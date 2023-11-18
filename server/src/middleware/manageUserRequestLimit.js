@@ -1,4 +1,5 @@
 import {UpdateUser} from '../dbServices/userServices.js';
+import customError from '../config/ApiCallError.js';
 
 export const manageUserRequestLimit = async (req, res, next) => {
     try{
@@ -9,9 +10,11 @@ export const manageUserRequestLimit = async (req, res, next) => {
         if(!user.lastLoginDate || currDate.toDateString() !== lastLoginDate.toDateString()){
             req.body.user.requestCount = 0;
             req.body.user.lastLoginDate = new Date();
+            
         }
         next();
     }catch(error) {
-        return res.status(500).json({error: "Internal server error"});
+        next(new customError("Internal server error - Failed while checking limit", 500, 'error'));
+        //return res.status(500).json({error: "Internal server error"});
     }
 };

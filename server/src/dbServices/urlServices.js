@@ -17,8 +17,6 @@ export const createUrl = async (payload) =>{
 export const getByUrlCode = async (urlCode) => {
     try{
         const urlObj = await urlModel.findOne({urlCode : urlCode});
-        // update visit count
-        //return await urlModel.findOneAndUpdate({ urlCode: urlCode }, data);
         return urlObj;
     }catch(error){
         throw Error(error);
@@ -30,8 +28,6 @@ export const getByUserAndUrlCode = async (data) => {
     const userId  = data.userId;
     try{
         const urlObj = await urlModel.findOne({urlCode : urlCode, userId:userId});
-        // update visit count
-        //return await urlModel.findOneAndUpdate({ urlCode: urlCode }, data);
         return urlObj;
     }catch(error){
         throw Error(error);

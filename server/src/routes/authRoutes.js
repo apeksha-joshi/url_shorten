@@ -1,6 +1,5 @@
 import { Router } from "express";
 import  authController from '../controller/authController.js';
-import { handleRefreshToken } from "../middleware/auth.js";
 import {manageUserRequestLimit} from '../middleware/manageUserRequestLimit.js';
 
 const router = Router();
@@ -9,13 +8,15 @@ const router = Router();
 router.post('/', authController.loginUser);
 
 // signup
-router.post('/signup', authController.registerUser);
+router.post('/register', authController.registerUser);
 
-router.get('/refresh-token', handleRefreshToken);
+router.get('/refresh-token', authController.handleRefreshToken);
 
 router.post('/forgot-password', authController.initiateForgotPassword);
 
 
 router.post('/reset-password', authController.resetPassword);
+
+router.get('/logout', authController.handleLogout);
 
 export default router;

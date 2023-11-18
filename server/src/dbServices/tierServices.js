@@ -8,3 +8,13 @@ export const findById = async(tierId) => {
         throw Error(error);
     }
 };
+
+
+export const findDefaultTier = async () => {
+    try{
+        const defaultTier = await Tier.findOne().sort({ maxRequests: 1 });
+        return defaultTier;
+    }catch(error){
+        throw Error(error);
+    }
+};
