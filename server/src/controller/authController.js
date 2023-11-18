@@ -2,7 +2,8 @@ import { findUserByEmail, validateUserLogin, createUser, handleForgotPassword, u
 import { getAuthToken, verifyResetToken } from '../middleware/auth.js';
 import {findDefaultTier} from '../dbServices/tierServices.js';
 import customError from '../config/ApiCallError.js';
-
+import passwordValidator from 'password-validator';
+import validator from 'validator';
 import jwt from 'jsonwebtoken';
 import {JWT_SECRET}  from '../utils/index.js';
 
@@ -18,7 +19,20 @@ const registerUser = async (req, res, next) => {
             next(new customError("Missing required parameters. Expected firstName, lastName, email, password, tier(optional)", 400, 'warn'));
         }
         else {
-            console.log("Inside register", payload);
+            // validate email and password
+
+            // email validation
+            if(!validateEmail(payload.email)){
+                return next(new customError("Invalid email. Please provide a valid email", 400, 'warn'));
+            }
+
+            // password validation
+            const isPasswordValid = validatePassword(payload.password);
+            if (!isPasswordValid.valid) {
+                return next(new customError(isPasswordValid.message, 400, 'warn'));
+                //console.log(validationResult.message);
+              } 
+
             let existingUser;
             try{
                 existingUser = await findUserByEmail(payload.email);
@@ -204,6 +218,12 @@ const resetPassword = async(req, res, next) =>{
             const email = await verifyResetToken(resetToken);
             
             if(email && typeof email === 'string'){
+                // validate password 
+                const isPasswordValid = validatePassword(payload.password);
+                if (!isPasswordValid.valid) {
+                    return next(new customError(isPasswordValid.message, 400, 'warn'));
+                    //console.log(validationResult.message);
+                } 
                 const isReset = await updateResetPassword(password, email);
                 
                 if(isReset){
@@ -257,6 +277,43 @@ const handleLogout = async (req, res, next) => {
         next(new customError("Internal server error", 500, 'error'));
     }
 }
+
+const validateEmail = (email) => {
+    if (validator.isEmail(email)) {
+        console.log('Email is valid');
+        return true;
+    } else {
+        console.log('Email is invalid');
+        return false;
+    }
+};
+
+const createPasswordValidator = () => {
+    const schema = new passwordValidator();
+
+    schema
+      .is().min(8) // Minimum length 8
+      .has().uppercase() // Must have uppercase letters
+      .has().digits() // Must have at least one digit
+      .has().symbols(); // Must have at least one symbol
+  
+    return schema;
+};
+
+const validatePassword = (inputPassword) => {
+    const passwordValidatorInstance = createPasswordValidator();
+    const validationResult = passwordValidatorInstance.validate(inputPassword, { list: true });
+    console.log("After validation", validationResult);
+  if (validationResult.length === 0) {
+    return { valid: true };
+  } else {
+    //${validationResult.join(', ')}
+    const errorMessage = `Password does not meet the requirements. It should have atleast one ${validationResult.join(', ')}`;
+    console.log(errorMessage);
+    return { valid: false, message: errorMessage };
+  }
+}
+  
 
 export default {
     registerUser,

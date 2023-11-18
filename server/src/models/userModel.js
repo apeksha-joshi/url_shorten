@@ -53,17 +53,4 @@ userSchema.set("toJSON", {
   });
 
 
-// userSchema.pre('save', async function (next) {
-//     // Use the hashPassword utility to hash the user's password before saving
-//     if (this.isModified('password')) {
-//       this.password = await hashPassword(this.password);
-//     }
-//     next();
-//   });
-  
-//   userSchema.methods.comparePassword = async function (candidatePassword) {
-//     // Use the comparePassword utility to check if the provided password matches the hashed password
-//     return comparePassword(candidatePassword, this.password);
-//   };
-
-export default mongoose.model("users", userSchema);
+export default mongoose.model("Users", userSchema);

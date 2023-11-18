@@ -8,7 +8,7 @@ const dbConnect = async () => {
     try{
         // const urlModel = mongoose.model("urls", urlModel);
         urlModel.createIndexes({ userId: 1, urlCode: 1 }, { unique: true });
-        await mongoose.connect(process.env.MONGO_URL);
+        await mongoose.connect(process.env.MONGO_CLOUD_URL);
         console.log("Database connected");
     }catch(error){
         console.error(error.message);

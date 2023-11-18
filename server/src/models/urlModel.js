@@ -32,4 +32,4 @@ urlSchema.set("toJSON", {
     versionKey: false,
   });
 
-export default mongoose.model("urls", urlSchema);
+export default mongoose.model("Urls", urlSchema);

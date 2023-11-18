@@ -18,4 +18,4 @@ tierSchema.set("toJSON", {
     versionKey: false,
   });
 
-export default mongoose.model('tiers', tierSchema);
+export default mongoose.model('Tiers', tierSchema);
