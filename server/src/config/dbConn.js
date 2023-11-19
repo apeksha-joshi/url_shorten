@@ -6,6 +6,7 @@ mongoose.set("strictQuery", false);
 
 const dbConnect = async () => {
     try{
+        console.log("DB",process.env.MONGO_CLOUD_URL);
         // const urlModel = mongoose.model("urls", urlModel);
         urlModel.createIndexes({ userId: 1, urlCode: 1 }, { unique: true });
         await mongoose.connect(process.env.MONGO_CLOUD_URL);

@@ -1,16 +1,18 @@
 import jwt from 'jsonwebtoken';
-import {JWT_SECRET}  from '../utils/index.js';
+//import {JWT_SECRET}  from '../utils/index.js';
 import User from '../models/userModel.js';
 import {UpdateUser,findUserByEmail} from '../dbServices/userServices.js';
 import customError from '../config/ApiCallError.js';
 
 export const generateAccessToken = (user) => {
+    
+    //console.log("Inside generate access", process.env.JWT_SECRET);
     return jwt.sign(
         {
             email: user.email,
             isLoggedIn: true,
         },
-        JWT_SECRET,
+        process.env.JWT_SECRET,
         {
             expiresIn: '15h',
         }
@@ -23,7 +25,7 @@ export const generateResetToken = (user) =>{
         {
             email: user.email,
         },
-        JWT_SECRET,
+        process.env.JWT_SECRET,
         {
             expiresIn: "24h",
         }
@@ -36,7 +38,7 @@ export const generateRefreshToken = async (user) => {
             {
                 email: user.email,
             },
-            JWT_SECRET,
+            process.env.JWT_SECRET,
             {
                 expiresIn: '1d',
             }
@@ -52,7 +54,7 @@ export const generateRefreshToken = async (user) => {
 export const verifyResetToken = async (token) => {
     return new Promise((resolve, reject) => {
         jwt.verify(
-            token, JWT_SECRET,
+            token, process.env.JWT_SECRET,
             async (err, decoded) => {
                 if(err){
                     resolve(false);
@@ -70,7 +72,6 @@ export const verifyResetToken = async (token) => {
 
 export const getAuthToken =async(req, res)=> {
     const user = req.body.user;
-    console.log("Inside getAuth",user);
     const accessToken = generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
     return {refreshToken, accessToken};
@@ -88,7 +89,7 @@ export const verifyToken = async(req,res,next) => {
     const token = authHeader.replace('Bearer ', '');
     try {
         const decoded = await new Promise((resolve, reject) => {
-            jwt.verify(token, JWT_SECRET, (err, decoded) => {
+            jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
                 if (err) {
                     reject(err);
                 } else {

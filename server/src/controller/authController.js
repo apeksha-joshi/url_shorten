@@ -5,12 +5,11 @@ import customError from '../config/ApiCallError.js';
 import passwordValidator from 'password-validator';
 import validator from 'validator';
 import jwt from 'jsonwebtoken';
-import {JWT_SECRET}  from '../utils/index.js';
+// import {JWT_SECRET}  from '../utils/index.js';
 
 const registerUser = async (req, res, next) => {
    
     try {
-        
          // add additional validations for user input
         const payload = req.body;
         
@@ -60,7 +59,6 @@ const registerUser = async (req, res, next) => {
                     const newUser = await createUser(payload);
                     req.body.user = newUser;
                     const tokens = await getAuthToken(req, res);
-                    console.log(tokens);
                     
                     res.cookie('jwt', tokens.refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 });
                     res.status(200).json({ email: newUser.email, accessToken: tokens.accessToken });
@@ -144,7 +142,7 @@ const handleRefreshToken = async (req, res, next) => {
             // check if it is the correct token
             let refreshTokenDecoded;
             try{
-                refreshTokenDecoded = jwt.verify(refreshToken, JWT_SECRET);
+                refreshTokenDecoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
             }catch(error){
                 return next(new customError("Invalid refresh token", 401, 'warn'))
             }
@@ -252,7 +250,7 @@ const handleLogout = async (req, res, next) => {
         const refreshToken = cookies.jwt;
         // check if it is the correct token
 
-        const refreshTokenDecoded = jwt.verify(refreshToken, JWT_SECRET);
+        const refreshTokenDecoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
         if (!refreshTokenDecoded) {
             //return res.status(401).send({message: "Invalid refresh token"});
             return next(new customError("Invalid refresh token", 401, 'warn'));
@@ -303,7 +301,7 @@ const createPasswordValidator = () => {
 const validatePassword = (inputPassword) => {
     const passwordValidatorInstance = createPasswordValidator();
     const validationResult = passwordValidatorInstance.validate(inputPassword, { list: true });
-    console.log("After validation", validationResult);
+    //console.log("After validation", validationResult);
   if (validationResult.length === 0) {
     return { valid: true };
   } else {

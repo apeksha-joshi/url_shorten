@@ -11,6 +11,7 @@ export const findById = async(tierId) => {
 
 
 export const findDefaultTier = async () => {
+    
     try{
         const defaultTier = await Tier.findOne().sort({ maxRequests: 1 });
         return defaultTier;
