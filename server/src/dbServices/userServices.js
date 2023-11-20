@@ -67,7 +67,6 @@ export const findUserByEmail = async(email) => {
 export const handleForgotPassword = async (email) => {
     try{
         const user = await findUserByEmail(email);
-        //get a resetToken for the user
         const resetToken = generateResetToken(user);
         user.resetToken = resetToken;
         await UpdateUser(user);
@@ -83,7 +82,6 @@ export const updateResetPassword = async(newPassword, email) => {
         user.password = await hashPassword(newPassword);
         user.resetToken = "";
         await UpdateUser(user);
-        //const testPassword = await hashPassword(newPassword);
         const testReset = await comparePassword(newPassword,user.password);
         return testReset;
     }catch(error){

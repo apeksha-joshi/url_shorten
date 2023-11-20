@@ -4,7 +4,7 @@ import {manageUserRequestLimit} from '../middleware/manageUserRequestLimit.js';
 
 const router = Router();
 
-// login - make default?
+// login
 router.post('/', authController.loginUser);
 
 // signup

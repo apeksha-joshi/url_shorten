@@ -12,9 +12,9 @@ export const manageUserRequestLimit = async (req, res, next) => {
             req.body.user.lastLoginDate = new Date();
             
         }
+        //upadte user
         next();
     }catch(error) {
         next(new customError("Internal server error - Failed while checking limit", 500, 'error'));
-        //return res.status(500).json({error: "Internal server error"});
     }
 };

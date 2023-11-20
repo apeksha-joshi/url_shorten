@@ -11,7 +11,6 @@ const requestLogFileName = "requestLog.txt";
 const errorLogFileName = "errorLog.txt";
 
 export const logEvents = async (message, filename) => {
-    console.log(message);
     const dateTimestamp = `${format(new Date(), 'yyyyMMdd\tHH:mm:ss')}`;
     const logItem = `${dateTimestamp}\t${uuid()}\t${message}\n`;
 
@@ -29,25 +28,30 @@ export const logEvents = async (message, filename) => {
 
 
 export const logger = (req, res, next) => {
-    logEvents(`${req.method}\t${req.headers.origin}\t${req.url}`, requestLogFileName)
+    let envLogFileName;
+    if(process.env.NODE_ENV === 'test'){
+        envLogFileName = testRequestLogFileName;
+    }else{
+        envLogFileName = requestLogFileName;
+    }
+    logEvents(`${req.method}\t${req.headers.origin}\t${req.url}`, envLogFileName);
     console.log(`Route call : ${req.method}: ${req.originalUrl}`);
     next();
 };
 
 export const errorLogger = (err, req, res, next) => {
-    console.log("Inside the error logger", err.name, err.message);
-    logEvents(`${err.status} : ${err.logLevel} : ${err.message}`, errorLogFileName);
+    let envErrorLogFileName;
+    if(process.env.NODE_ENV === 'test'){
+        envErrorLogFileName = testErrorLogFileName;
+    }else{
+        envErrorLogFileName = errorLogFileName;
+    }
+    logEvents(`${err.status} : ${err.logLevel} : ${err.message}`, envErrorLogFileName);
     if(err instanceof customError) {
         res.status(err.status).json(err.toResponseJSON());
     }else{
         res.status(500).json({message: "Internal server error"});
     }
-    
-    
-    //res.status(500).json({message: "Internal server error"});
-    // if (res.statusCode !== 400 && res.statusCode !== 401 && res.status !== 403) {
-        
-    // }
     
     
 };

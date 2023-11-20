@@ -9,12 +9,10 @@ export const checkRequestLimit = async(req, res, next) =>{
         const userRequestCount = user.requestCount;
         const { maxRequests } = await findById(tierId);
         if(userRequestCount >=  maxRequests) {
-            //return res.status(429).json({error: "Request limit exceeded for the day"});
             next(new customError("Request limit exceeded for the day", 429, 'warn'));
         }
         next();
     }catch(error) {
         next(new customError("Internal server error", 500, 'error'));
-        //return res.status(500).json({error: "Internal server error"});
     }
 };

@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
-import {JWT_SECRET}  from '../utils/index.js';
 import User from '../models/userModel.js';
-import {UpdateUser,findUserByEmail} from '../dbServices/userServices.js';
+import {UpdateUser} from '../dbServices/userServices.js';
 import customError from '../config/ApiCallError.js';
 
 export const generateAccessToken = (user) => {
@@ -12,7 +11,7 @@ export const generateAccessToken = (user) => {
         },
         JWT_SECRET,
         {
-            expiresIn: '15h',
+            expiresIn: '15m',
         }
     );
 };
@@ -80,10 +79,8 @@ export const getAuthToken =async(req, res)=> {
 export const verifyToken = async(req,res,next) => {
     
     const authHeader = req.headers.authorization || req.headers.Authorization;
-    //?.replace('Bearer ', '') || '';
     if(!authHeader?.startsWith('Bearer ')){
         return next(new customError("Access Token not provided", 400, 'warn'));
-        //return res.status(401).json({message: 'No token provided'});
     }
     const token = authHeader.replace('Bearer ', '');
     try {
@@ -108,10 +105,8 @@ export const verifyToken = async(req,res,next) => {
 
         if (error.name === 'TokenExpiredError') {
             return next(new customError("Token has expired", 403, 'warn'));
-            //return res.status(401).send({ message: 'Token has expired' });
         } else {
             return next(new customError("Invalid Token", 401, 'warn'));
-            //return res.status(401).send({ message: 'Invalid Token' });
         }
     }
    

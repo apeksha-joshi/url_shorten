@@ -5,9 +5,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node src/app",
-    "dev": "nodemon src/app",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "cross-env NODE_ENV=production node src/app",
+    "dev": "cross-env NODE_ENV=development nodemon src/app"
   },
   "author": "",
   "license": "ISC",
@@ -25,5 +24,8 @@
     "uuid": "^9.0.1",
     "valid-url": "^1.0.9",
     "validator": "^13.11.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
