@@ -66,9 +66,11 @@ app.all('*', (req, res, next) => {
 });
 
 
-//error logger
-app.use(errorLogger);
 
+if(process.env.NODE_ENV === 'development'){
+  //error logger
+  app.use(errorLogger);
+}
 let server;
 
 
@@ -80,7 +82,9 @@ mongoose.connection.once('open', () => {
       server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
   });
   
-
+// if(process.env.NODE_ENV==='test'){
+//   server.close(()=>process.exit(0));
+// }
 
 //listen unhandleRejection and uncaughtException
 process.on("unhandledRejection", (reason, p) => {

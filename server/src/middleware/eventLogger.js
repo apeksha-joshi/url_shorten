@@ -55,8 +55,8 @@ export const errorLogger = (err, req, res, next) => {
     console.log(envErrorLogFileName);
     logEvents(`${err.status} : ${err.logLevel} : ${err.message}`, envErrorLogFileName);
     if(err instanceof customError) {
-        res.status(err.status).json(err.toResponseJSON());
+        res.status(err.status).json(err.toResponseJSON()).end();
     }else{
-        res.status(500).json({message: "Internal server error"});
+        res.status(500).json({message: "Internal server error"}).end();
     }
 };
